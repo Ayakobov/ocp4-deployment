@@ -1,0 +1,7 @@
+ - name: Cluster deployment
+   hosts: helper
+   gather_facts: false
+   serial: "100%"
+   roles:
+     - cluster_deploy
+

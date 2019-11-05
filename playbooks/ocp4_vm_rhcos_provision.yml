@@ -1,0 +1,20 @@
+ - name: create bootstrap vm
+   hosts: bootstrap
+   gather_facts: false
+   serial: "100%"
+   roles:
+     - bootstrap_vm_create
+
+ - name: create master vms
+   hosts: masters
+   gather_facts: false
+   serial: "100%"
+   roles:
+   - role: master_vm_create
+
+ - name: create worker vms
+   hosts: workers
+   gather_facts: false
+   serial: "100%"
+   roles:
+   - role: worker_vm_create

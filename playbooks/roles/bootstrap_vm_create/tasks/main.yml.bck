@@ -1,0 +1,42 @@
+---
+- name: create bootstrap vm
+  block:
+    - set_fact:
+        disk_size: "{{ vmDisk }}"
+        memory: "{{ vmMemory }}"
+        cpu: "{{ vmCPUs }}"
+    - vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: no
+        datacenter: "{{ vcenter_datacenter }}"
+        cluster: "{{ vcenter_cluster }}"
+        folder: "{{ vcenter_folder_full }}"
+        name: "{{ hostname }}"
+        state: present
+        template: "{{ vmware_rhcos_template_name }}"
+        disk:
+          - size_gb: "{{ disk_size }}"
+            type: thin
+            datastore: "{{ vcenter_datastore }}"
+        hardware:
+          memory_mb: "{{ memory }}"
+          num_cpus: "{{ cpu }}"
+        networks:
+          - name: "{{ vmware_network_name }}"
+            mac: "{{ macaddress }}"
+            ip: "{{ ansible_ssh_host }}"
+            netmask: "{{ netmask }}"
+            gateway: "{{ gateway }}"
+
+        wait_for_ip_address: no
+        customvalues:
+          - key: "guestinfo.ignition.config.data"
+            value: "{{ lookup('file', '/var/lib/awx/projects/ocp4/playbooks/roles/bootstrap_vm_create/templates/ocp42-installer/var/tmp/ocp4-deployconfigs/append-bootstrap.64') }}"
+          - key: "guestinfo.ignition.config.data.encoding"
+            value: "base64"
+          - key: "disk.EnableUUID"
+            value: "TRUE"
+      with_items:
+        - "{{ groups['bootstrap'] | sort }}"

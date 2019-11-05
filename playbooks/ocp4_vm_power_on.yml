@@ -1,0 +1,7 @@
+ - name: power on VMs
+   hosts: dhcpclients
+   gather_facts: false
+   serial: "100%"
+   roles:
+     - vm_power
+

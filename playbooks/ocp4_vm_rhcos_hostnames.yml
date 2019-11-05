@@ -1,0 +1,16 @@
+- name: Set hostname
+  hosts: helper
+  become: yes
+  serial: "100%"
+
+  tasks:
+  - name: Wait 600 seconds for VMs connection to become reachable/usable but only start checking after 60 seconds
+    wait_for_connection:
+      delay: 60
+    with_items:
+      - "{{ groups['dhcpclients'] }}"
+
+  - name: set hostname
+    shell: "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -q core@{{ hostvars[item].ansible_ssh_host }} 'sudo hostnamectl set-hostname {{ hostvars[item].hostname }}'"
+    with_items:
+      - "{{ groups['dhcpclients'] }}"

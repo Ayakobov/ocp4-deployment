@@ -1,0 +1,29 @@
+---
+- name: create cluster
+  shell: "/usr/local/bin/openshift-install --dir={{ install_dir }} wait-for bootstrap-complete --log-level debug"
+
+- pause: seconds=120
+
+- name: Add KUBECONFIG to .bashrc
+  shell: |
+    grep "KUBECONFIG={{ install_dir }}/auth/kubeconfig" /root/.bashrc || echo export KUBECONFIG={{ install_dir }}/auth/kubeconfig >> /root/.bashrc 
+
+- name: reset ssh connection to allow user changes to affect 'current login user'
+  meta: reset_connection
+
+- name: Patching image-registry
+  shell: |
+    oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"emptyDir":{}}}}'
+
+- name: Check patch Implementation
+  shell: oc get clusteroperators | awk '{print $3'}
+  register: result
+  until: result.stdout.find ("False") == -1
+  retries: 10
+  delay: 30
+
+#- pause: seconds=60
+
+- name: Complete cluster creation
+  shell: "/usr/local/bin/openshift-install --dir={{ install_dir }} wait-for install-complete"
+  

@@ -1,0 +1,127 @@
+---
+
+[vars]
+ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o ControlMaster=auto -o ControlPersist=60s -o PreferredAuthentications=publickey'
+searchdomain: ocp41.sales.lab.tlv.redhat.com
+ocp_web: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/"
+install_dir: "/var/tmp/ocp4-deployconfigs"
+helpername: ocp41-installer
+
+[all_infra:vars]
+
+################ VMware Connection ######################
+vcenter_hostname: 10.35.76.242
+vcenter_user: Administrator@vsphere.local
+vcenter_pass: Password@123
+vcenter_datastore: datastore5
+vcenter_datacenter: Datacenter1
+vcenter_cluster: Cluster1
+vcenter_vmtemplate: rhel76-std
+vcenter_folder_full: /Cluster1/ocp41/
+vmware_rhcos_template_name: rhcos-4.2
+pull_secret: '{"auths":{"cloud.openshift.com":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2F5YWtvdWJvcmVkaGF0Y29tMW5wZWFieWE0OTkxdWd0d204dHBoaXd3aGdrOk1UNVlURzM1NlZKN1NaVk9RMzVTSVJGN0VKUzZWTlJUQlZCSzJERTU3VUtSNkpCWEY3RzZHSFNHS1Q0NURYRTI=","email":"ayakoubo@redhat.com"},"quay.io":{"auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2F5YWtvdWJvcmVkaGF0Y29tMW5wZWFieWE0OTkxdWd0d204dHBoaXd3aGdrOk1UNVlURzM1NlZKN1NaVk9RMzVTSVJGN0VKUzZWTlJUQlZCSzJERTU3VUtSNkpCWEY3RzZHSFNHS1Q0NURYRTI=","email":"ayakoubo@redhat.com"},"registry.connect.redhat.com":{"auth":"NTE5Nzk2NzV8dWhjLTFOUGVBQllBNDk5MXVnVHdNOFRwaEl3V2hnazpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTVOalpqTVdNM1l6VTRZemcwT0dNeVltRTFOelkyWXpnelpqZzVZV00wWWlKOS5oQy1yeUJaYU9MYy0tQXUydTIwRmFrNFprR0RNX3hmU0FkSEd1UXl3ZTdKdFRlZ2hiMm9DckNUeEZQS0lIUmJoSVJoNTFyQWNQR3I5TEhHNXVhdUZWVHp0RlFCMkt0aGlOQ1pYQlVWZElIWXBDWFl6MDZJbzFpRE9FUGtWRUgzZGM4eUNTQnJqd1Nuc3VDWUZFVUxoal9wV2xnR2ttZEwtQ1pkQlQ5YUhmWXU3MlVrS2RvcnUtZHZFSHVJVXNWdHhzTzVSTWkxWXJkUmR2U3QzcnFCZFlndkRZMUZZVGhhWmZrSDJ0MFNpcHA1V2tPc2tsR3RNQWNxZExTYXNscGxNUzFTT2w4QWd3RVRRQkFMMy1YRDU5TjFwcHh6bTNfa0dUZVQySDdqeGU0QU1OZW1Db2ZRa2xkdDlrOVhfSUNSRnNXQkI5Z2FCeDRtY3RGOW5ScXVsc1NFd0dfeGx2V3hBLXp3Z054YkJGbXp3ZE9nQWJ5cmJrU09sWGVfUWVWUFo1UnI3OVktLWJtdERta0xhQ1lkMHRXblZjMm1kb051Uzh1U2pnTmJJVl9RQzV5SVVpUExoSl9ESmx4MzV5aWx2V3h6dmNQbzA2cWdubzNOQlNZXy13N2FtbVp2OHNKaXdxZXBTS21tRGdaMHJYSkVmN3JnejZHSW5ZTVhhQVNlb1Vlb3VYLWJlRHZaaktVRDdHUk5RczczZ3cwZVZIN1phb282cWxuaUxiTFpIR1NZdWlVUjVWTER4MnFuZ0tGRU54WDRFMmlGYWZNSURHeW40Q1UxRkFCSzJhN21wVWc5cDREYmZXNlVaSmM1OUM2U0RnQmc2Tk5FRWM4dGFBSUdYNWhkN04tVzk0UUdGZUt2OTNxN2cyR2dIV21RWXNCajFVaUlnUHQta0N5SQ==","email":"ayakoubo@redhat.com"},"registry.redhat.io":{"auth":"NTE5Nzk2NzV8dWhjLTFOUGVBQllBNDk5MXVnVHdNOFRwaEl3V2hnazpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTVOalpqTVdNM1l6VTRZemcwT0dNeVltRTFOelkyWXpnelpqZzVZV00wWWlKOS5oQy1yeUJaYU9MYy0tQXUydTIwRmFrNFprR0RNX3hmU0FkSEd1UXl3ZTdKdFRlZ2hiMm9DckNUeEZQS0lIUmJoSVJoNTFyQWNQR3I5TEhHNXVhdUZWVHp0RlFCMkt0aGlOQ1pYQlVWZElIWXBDWFl6MDZJbzFpRE9FUGtWRUgzZGM4eUNTQnJqd1Nuc3VDWUZFVUxoal9wV2xnR2ttZEwtQ1pkQlQ5YUhmWXU3MlVrS2RvcnUtZHZFSHVJVXNWdHhzTzVSTWkxWXJkUmR2U3QzcnFCZFlndkRZMUZZVGhhWmZrSDJ0MFNpcHA1V2tPc2tsR3RNQWNxZExTYXNscGxNUzFTT2w4QWd3RVRRQkFMMy1YRDU5TjFwcHh6bTNfa0dUZVQySDdqeGU0QU1OZW1Db2ZRa2xkdDlrOVhfSUNSRnNXQkI5Z2FCeDRtY3RGOW5ScXVsc1NFd0dfeGx2V3hBLXp3Z054YkJGbXp3ZE9nQWJ5cmJrU09sWGVfUWVWUFo1UnI3OVktLWJtdERta0xhQ1lkMHRXblZjMm1kb051Uzh1U2pnTmJJVl9RQzV5SVVpUExoSl9ESmx4MzV5aWx2V3h6dmNQbzA2cWdubzNOQlNZXy13N2FtbVp2OHNKaXdxZXBTS21tRGdaMHJYSkVmN3JnejZHSW5ZTVhhQVNlb1Vlb3VYLWJlRHZaaktVRDdHUk5RczczZ3cwZVZIN1phb282cWxuaUxiTFpIR1NZdWlVUjVWTER4MnFuZ0tGRU54WDRFMmlGYWZNSURHeW40Q1UxRkFCSzJhN21wVWc5cDREYmZXNlVaSmM1OUM2U0RnQmc2Tk5FRWM4dGFBSUdYNWhkN04tVzk0UUdGZUt2OTNxN2cyR2dIV21RWXNCajFVaUlnUHQta0N5SQ==","email":"ayakoubo@redhat.com"}}}'
+# OCP version which is used to download proper clients from Red Hat
+ocp_version: 4.2.0
+
+# Instance network information, used for DHCP configuration
+vmware_network_name: "VM Network"
+vlan: "VM Network"
+gateway: 10.35.76.254
+netmask: 255.255.255.128
+
+cluster_name: ocp41
+base_domain: sales.lab.tlv.redhat.com
+domain: ocp41.sales.lab.tlv.redhat.com
+
+##### VMDK Persistant Storage ####
+openshift_cloudprovider_kind: vsphere
+openshift_cloudprovider_vsphere_username: administrator@vsphere.local
+openshift_cloudprovider_vsphere_password: Password@123
+openshift_cloudprovider_vsphere_host: 10.35.76.242
+openshift_cloudprovider_vsphere_datacenter: Datacenter1
+openshift_cloudprovider_vsphere_cluster: Cluster1
+openshift_cloudprovider_vsphere_datastore: datastore4
+
+[dhcpclients:vars]
+
+cpu: 4
+ram_mb: 16384
+disk_size: 120
+
+[helper:vars]
+
+dns: 
+  - 10.35.76.249
+  - 10.46.0.31
+
+[ocp41-installer:vars]
+ansible_ssh_host: 10.35.76.160
+netmask: 255.255.255.128
+gateway: 10.35.76.254
+hostname: ocp41-installer.ocp41.sales.lab.tlv.redhat.com
+vlan: "VM Network"
+vmCPUs: 2
+vmMemory: 4096
+vmDisk: 40
+disks: []
+
+[bootstrap-0:vars]
+ansible_ssh_host: 10.35.76.200
+hostname: bootstrap-0.ocp41.sales.lab.tlv.redhat.com
+macaddress: 00:50:56:8e:36:fd
+
+[control-plane-0:vars]
+ansible_ssh_host: 10.35.76.204
+hostname: control-plane-0.ocp41.sales.lab.tlv.redhat.com
+macaddress: 00:50:56:8e:eb:c5
+
+[control-plane-1:vars]
+ansible_ssh_host: 10.35.76.205
+hostname: control-plane-1.ocp41.sales.lab.tlv.redhat.com
+macaddress: 00:50:56:8e:d9:9b
+
+[control-plane-2:vars]
+ansible_ssh_host: 10.35.76.206
+hostname: control-plane-2.ocp41.sales.lab.tlv.redhat.com
+macaddress: 00:50:56:8e:33:cb
+
+[compute-0:vars]
+ansible_ssh_host: 10.35.76.201
+hostname: compute-0.ocp41.sales.lab.tlv.redhat.com
+macaddress: 00:50:56:8e:ae:37
+
+[compute-1:vars]
+ansible_ssh_host: 10.35.76.202
+hostname: compute-1.ocp41.sales.lab.tlv.redhat.com
+macaddress: 00:50:56:8e:7f:0e
+
+[compute-2:vars]
+ansible_ssh_host: 10.35.76.203
+hostname: compute-2.ocp41.sales.lab.tlv.redhat.com
+macaddress: 00:50:56:8e:d5:ba
+
+[all_infra:children]
+dhcpclients
+helper
+
+[dhcpclients:children]
+bootstrap
+masters
+workers
+
+[helper]
+ocp41-installer
+
+[bootstrap]
+bootstrap-0
+
+[masters]
+control-plane-0
+control-plane-1
+control-plane-2
+
+[workers]
+compute-0
+compute-1
+compute-2
+

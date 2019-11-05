@@ -1,0 +1,94 @@
+ - name: Update helper host
+   hosts: helper
+   become: true
+   gather_facts: true
+   serial: "100%"
+
+   tasks:
+
+   - include: include/setup_internal_repos.yml
+     when: yumrepo_url is defined
+
+   - include: include/rhelsubmgr.yml
+     when: rheluser is defined
+
+   - name: install support packages
+     package:
+       name: "{{item}}"
+       state: present
+     with_items:
+       - wget
+       - git
+       - net-tools
+       - bind-utils
+       - yum-utils
+       - iptables-services
+       - bridge-utils
+       - bash-completion
+       - kexec-tools
+       - sos
+       - psacct
+       - ntp
+       - zip
+       - unzip
+       - httpd
+       - python-netaddr
+       - vim
+       - lsof
+       - mlocate
+       - traceroute
+
+   - name: fetch epel-release
+     get_url:
+       url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+       dest: /var/tmp/epel-release-latest-7.noarch.rpm
+       remote_src: yes
+
+   - name: install epel packages
+     package:
+       name: "{{item}}"
+       state: present
+     with_items:
+       - /var/tmp/epel-release-latest-7.noarch.rpm
+       - python27-python-pip
+       - python-pip
+       - htop
+
+   - name:     Configure NTP | Add server lines to ntp.conf
+     template:
+       src:    templates/ntpconf.j2
+       dest:   /etc/ntp.conf
+     when:     ntp is defined
+     notify:   ntp_restart
+
+   - name:     Configure NTP | start ntp daemon
+     service:  
+       name: ntpd 
+       enabled: yes 
+       state: started
+
+   - name: update resolv file for dns
+     template:
+       src: templates/resolv.j2
+       dest: /etc/resolv.conf
+     when: dns is defined
+
+   - name: set hostname
+     hostname:
+       name: "{{ hostname }}"
+      
+   - name: Build hosts file
+     lineinfile:
+       path: /etc/hosts
+       line: "{{ hostvars[item].ansible_default_ipv4.address }} {{ hostvars[item].hostname }}"
+       state: present
+     when: 'hostvars[item].ansible_default_ipv4.address is defined'
+     with_items:
+       - "{{ groups['helper'] }}"
+
+   handlers:
+   - name: ntp_restart
+     service:
+       name: ntpd
+       state: restarted
+

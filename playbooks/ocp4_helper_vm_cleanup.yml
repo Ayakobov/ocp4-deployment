@@ -1,0 +1,21 @@
+---
+ - name: Helper vm cleanup
+   hosts: helper
+   gather_facts: false
+   serial: "100%"
+   roles:
+     - helper_vm_cleanup
+   
+ - name: Remove Folder from Tower  
+   hosts: localhost
+   gather_facts: false
+   become: false
+   tasks:
+   - name: Remove Folder
+     file:
+       path: "{{ item }}"
+       state: absent
+     with_items:
+       - "/var/lib/awx/projects/ocp4/playbooks/roles/ocp_installer_setup/{{ helpername }}"
+       - "/var/lib/awx/projects/ocp4/playbooks/roles/ocp_installer_setup/templates/{{ helpername }}"
+   

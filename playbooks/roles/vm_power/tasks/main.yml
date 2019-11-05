@@ -1,0 +1,14 @@
+---
+- name: Set the state of a Virtual Machines to poweron
+  vmware_guest_powerstate:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_user }}"
+    password: "{{ vcenter_pass }}"
+    validate_certs: no
+    folder: "{{ vcenter_folder_full }}"
+    name: "{{ hostname }}"
+    state: powered-on
+  delegate_to: localhost
+  register: power_on
+  with_items:
+    "{{ groups['dhcpclients'] | sort }}"

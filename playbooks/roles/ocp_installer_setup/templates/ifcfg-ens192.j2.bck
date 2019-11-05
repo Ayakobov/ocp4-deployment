@@ -1,0 +1,9 @@
+DEVICE=ens192
+TYPE=Ethernet
+BOOTPROTO=none
+IPADDR=
+PREFIX=25
+DNS1={{ ext_dns }}
+NAME="Wired connection 1"
+ONBOOT=yes
+GATEWAY={{ mgmt_gw }}

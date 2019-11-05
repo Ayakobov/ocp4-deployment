@@ -1,0 +1,161 @@
+---
+- name: Ensure the default httpd address is ipv4
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^Listen '
+    insertafter: '^#Listen '
+    line: Listen 0.0.0.0:80
+
+- name: start httpd server
+  become: true
+  service:
+    name: httpd
+    state: restarted
+
+- name: Open port 80 for http access
+  become: true
+  firewalld:
+    service: http
+    permanent: true
+    state: enabled
+
+- name: Restart the firewalld service to load in the firewall changes
+  become: true
+  service: 
+    name: firewalld 
+    state: restarted
+
+- name: pyvmomi install
+  become: true
+  pip:
+    name: pyvmomi
+
+- name: fetch installer
+  get_url:
+    url: "{{ ocp_web }}/{{ ocp_version }}/openshift-install-linux-{{ ocp_version }}.tar.gz"
+    dest: /var/tmp/openshift-install-linux-{{ ocp_version }}.tar.gz
+    remote_src: yes
+
+- name: fetch clients
+  get_url:
+    url: "{{ ocp_web }}/{{ ocp_version }}/openshift-client-linux-{{ ocp_version }}.tar.gz"
+    dest: /var/tmp/openshift-client-linux-{{ ocp_version }}.tar.gz
+    remote_src: yes
+
+- name: extract installer and client
+  become: true
+  unarchive:
+    src: "{{ item }}"
+    dest: /usr/local/bin
+    mode: +x
+    remote_src: yes
+  with_items:
+    - "/var/tmp/openshift-install-linux-{{ ocp_version }}.tar.gz"
+    - "/var/tmp/openshift-client-linux-{{ ocp_version }}.tar.gz"
+
+- name: create installation directory
+  file:
+    path: "{{ install_dir }}"
+    state: directory
+    mode: 0644
+
+- name: Copy Tower SSH Key pairs to Installer
+  template:
+    src: "{{ item }}"
+    dest: /root/.ssh/
+    mode: 0600
+  with_items:
+    - "id_rsa"
+    - "id_rsa.pub"
+
+#- name: Check .ssh dir
+#  file:
+#    path: /home/{{ ssh_keygen_user }}/.ssh
+#    state: directory
+#    mode: 0700
+#    owner: "{{ ssh_keygen_user }}"
+#    group: "{{ ssh_keygen_user }}"
+#
+#- name: Create keys
+#  shell: ssh-keygen -t {{ item }} -b {{ ssh_keygen_bits }} -C "{{ ssh_keygen_email }}" -N "{{ ssh_keygen_password }}" -f /home/{{ ansible_ssh_user }}/.ssh/id_{{ item }} creates=/home/{{ ssh_keygen_user }}/.ssh/id_{{ item }}
+#  with_items:
+#    - "{{ ssh_keygen_types }}"
+#
+#- name: check private keys cert privileges
+#  file:
+#    path: /home/{{ ssh_keygen_user }}/.ssh/id_{{ item }}
+#    state: file
+#    mode: 0700
+#    owner: "{{ ssh_keygen_user }}"
+#    group: "{{ ssh_keygen_user }}"
+#  with_items:
+#    - "{{ ssh_keygen_types }}"
+#
+#- name: check public keys cert privileges
+#  file:
+#    path: /home/{{ ssh_keygen_user }}/.ssh/id_{{ item }}.pub
+#    state: file
+#    mode: 0700
+#    owner: "{{ ssh_keygen_user }}"
+#    group: "{{ ssh_keygen_user }}"
+#  with_items:
+#    - "{{ ssh_keygen_types }}"
+#
+#- name: Fetch the content of ssh-pub-key
+#  fetch:
+#    src: /root/.ssh/id_rsa.pub
+#    dest: "{{ role_path }}/templates/"
+
+- name: copy config file to correct place
+  template:
+    src: templates/install-config.yaml.j2
+    dest: "{{ install_dir }}/install-config.yaml"
+    mode: 0644
+
+- name: take a copy of install-config.yaml file to home directory for referrence
+  template:
+    src: templates/install-config.yaml.j2
+    dest: /var/tmp/install-config.yaml
+    mode: 0644
+
+- name: create ignition configs
+  shell: "/usr/local/bin/openshift-install create ignition-configs --dir={{ install_dir }}"
+  
+- name: create append-bootstrap file
+  template:
+    src: templates/append-bootstrap.ign.j2
+    dest: "{{ install_dir }}/append-bootstrap.ign"
+
+- name: create base64 files from required ignition files
+  shell:
+    cmd: |
+      base64 -w0 "{{ install_dir }}/master.ign" > "{{ install_dir }}/master.64"
+      base64 -w0 "{{ install_dir }}/worker.ign" > "{{ install_dir }}/worker.64"
+      base64 -w0 "{{ install_dir }}/append-bootstrap.ign" > "{{ install_dir }}/append-bootstrap.64"
+
+- name: Start the ssh-agent process as a background task
+  shell:
+    cmd: |
+      eval "$(ssh-agent -s)" && ssh-add /root/.ssh/id_rsa
+
+- name: copy bootstrap ignition file to public dir
+  become: true
+  copy:
+    src: "{{ install_dir }}/bootstrap.ign"
+    dest: /var/www/html/bootstrap.ign
+    remote_src: yes
+
+- name: Fetch the content of append-bootstrap.64
+  fetch:
+    src: "{{ install_dir }}/append-bootstrap.64"
+    dest: "{{ role_path }}"
+
+- name: Fetch the content of master.64
+  fetch:
+    src: "{{ install_dir }}/master.64"
+    dest: "{{ role_path }}"
+
+- name: Fetch the content of worker.64
+  fetch:
+    src: "{{ install_dir }}/worker.64"
+    dest: "{{ role_path }}"

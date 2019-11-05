@@ -1,0 +1,43 @@
+---
+- name: create worker vms
+  vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_user }}"
+    password: "{{ vcenter_pass }}"
+    validate_certs: no
+    datacenter: "{{ vcenter_datacenter }}"
+    cluster: "{{ vcenter_cluster }}"
+    folder: "{{ vcenter_folder_full }}"
+    resource_pool: "{{ vcenter_resource_pool | default(omit) }}"
+    name: "{{ hostvars[item]['hostname'] }}"
+    state: present
+    template: "{{ vmware_rhcos_template_name }}" 
+    is_template: no
+    disk:
+      - size_gb: "{{ hostvars[item]['disk_size'] }}"
+        type: thin
+        datastore: "{{ hostvars[item]['vcenter_datastore'] }}"
+    hardware:
+      memory_mb: "{{ hostvars[item]['ram_mb'] }}"
+      num_cpus: "{{ hostvars[item]['cpu'] }}"
+    networks:
+      - name: "{{ vmware_network_name }}"
+        mac: "{{ hostvars[item]['macaddress'] }}"
+        start_connected: True
+    wait_for_ip_address: no
+    customvalues:
+      - key: "guestinfo.ignition.config.data"
+        value: "{{ lookup('file', '/var/lib/awx/projects/ocp4/playbooks/roles/ocp_installer_setup/{{ helpername }}/{{ install_dir }}/worker.64') }}"
+      - key: "guestinfo.ignition.config.data.encoding"
+        value: "base64"
+      - key: "disk.EnableUUID"
+        value: "TRUE"
+  register: worker_vm
+  delegate_to: localhost
+  with_items:
+    - "{{ groups['workers'] | sort }}"
+  ignore_errors: true
+  retries: 2
+  delay: 5
+  until: 1==2
+  

@@ -1,0 +1,8 @@
+ - name: OCP 4 prerequisites
+   hosts: helper
+   become: true
+   gather_facts: false
+   serial: "100%"
+
+   roles:
+     - ocp_installer_setup

@@ -1,0 +1,20 @@
+---
+- name: remove ocp4 directories and bootstrap ignition file
+  become: true
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "/var/tmp/ocp4-deployconfigs"
+    - "/var/www/html/bootstrap.ign"
+    - "/var/tmp/install-config.yaml"
+    - "/root/.ssh/"
+
+- name: remove hosts from known_hosts file
+  known_hosts:
+    name: "{{ hostvars[item]['hostname'] }}"
+    state: absent
+    name: "{{ hostvars[item]['ansible_ssh_host'] }}"
+    state: absent
+  with_items:
+    - "{{ groups['dhcpclients'] }}"

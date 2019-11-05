@@ -1,0 +1,8 @@
+---
+
+govc_username: "{{ vcenter_user }}"
+govc_password: "{{ vcenter_pass }}"
+govc_insecure: 1
+govc_datastore: "{{ vcenter_datastore }}"
+govc_datacenter: "{{ vcenter_datacenter }}"
+govc_url: "https://{{ vcenter_hostname }}/sdk"

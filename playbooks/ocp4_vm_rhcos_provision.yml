@@ -10,11 +10,11 @@
    gather_facts: false
    serial: "100%"
    roles:
-   - role: master_vm_create
+     - role: master_vm_create
 
  - name: create worker vms
    hosts: workers
    gather_facts: false
    serial: "100%"
    roles:
-   - role: worker_vm_create
+     - role: worker_vm_create

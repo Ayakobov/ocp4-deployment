@@ -2,7 +2,7 @@
 
 [vars]
 ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o ControlMaster=auto -o ControlPersist=60s -o PreferredAuthentications=publickey'
-searchdomain: ocp41.sales.lab.tlv.redhat.com
+searchdomain: ocp41.example.redhat.com
 ocp_web: "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/"
 install_dir: "/var/tmp/ocp4-deployconfigs"
 helpername: ocp41-installer
@@ -10,9 +10,9 @@ helpername: ocp41-installer
 [all_infra:vars]
 
 ################ VMware Connection ######################
-vcenter_hostname: 10.35.76.242
+vcenter_hostname: 10.x.x.242
 vcenter_user: Administrator@vsphere.local
-vcenter_pass: Password@123
+vcenter_pass: YourPassword
 vcenter_datastore: datastore5
 vcenter_datacenter: Datacenter1
 vcenter_cluster: Cluster1
@@ -26,21 +26,13 @@ ocp_version: 4.2.0
 # Instance network information, used for DHCP configuration
 vmware_network_name: "VM Network"
 vlan: "VM Network"
-gateway: 10.35.76.254
-netmask: 255.255.255.128
+gateway: 10.x.x.254
+netmask: 255.x.x.128
 
 cluster_name: ocp41
-base_domain: sales.lab.tlv.redhat.com
-domain: ocp41.sales.lab.tlv.redhat.com
+base_domain: example.redhat.com
+domain: ocp41.example.redhat.com
 
-##### VMDK Persistant Storage ####
-openshift_cloudprovider_kind: vsphere
-openshift_cloudprovider_vsphere_username: administrator@vsphere.local
-openshift_cloudprovider_vsphere_password: Password@123
-openshift_cloudprovider_vsphere_host: 10.35.76.242
-openshift_cloudprovider_vsphere_datacenter: Datacenter1
-openshift_cloudprovider_vsphere_cluster: Cluster1
-openshift_cloudprovider_vsphere_datastore: datastore4
 
 [dhcpclients:vars]
 
@@ -51,14 +43,14 @@ disk_size: 120
 [helper:vars]
 
 dns: 
-  - 10.35.76.249
-  - 10.46.0.31
+  - 10.x.x.249
+  - 10.x.x.31
 
 [ocp41-installer:vars]
-ansible_ssh_host: 10.35.76.160
+ansible_ssh_host: 10.x.x.160
 netmask: 255.255.255.128
-gateway: 10.35.76.254
-hostname: ocp41-installer.ocp41.sales.lab.tlv.redhat.com
+gateway: 10.x.x.254
+hostname: ocp41-installer.ocp41.example.redhat.com
 vlan: "VM Network"
 vmCPUs: 2
 vmMemory: 4096
@@ -66,39 +58,39 @@ vmDisk: 40
 disks: []
 
 [bootstrap-0:vars]
-ansible_ssh_host: 10.35.76.200
-hostname: bootstrap-0.ocp41.sales.lab.tlv.redhat.com
-macaddress: 00:50:56:8e:36:fd
+ansible_ssh_host: 10.x.x.200
+hostname: bootstrap-0.ocp41.example.tlv.redhat.com
+macaddress: 00:50:56:84:36:fd
 
 [control-plane-0:vars]
-ansible_ssh_host: 10.35.76.204
-hostname: control-plane-0.ocp41.sales.lab.tlv.redhat.com
-macaddress: 00:50:56:8e:eb:c5
+ansible_ssh_host: 10.x.x.204
+hostname: control-plane-0.ocp41.example.redhat.com
+macaddress: 00:53:56:8e:eb:c5
 
 [control-plane-1:vars]
-ansible_ssh_host: 10.35.76.205
-hostname: control-plane-1.ocp41.sales.lab.tlv.redhat.com
-macaddress: 00:50:56:8e:d9:9b
+ansible_ssh_host: 10.x.x.205
+hostname: control-plane-1.ocp41.example.redhat.com
+macaddress: 00:53:56:8e:d9:9b
 
 [control-plane-2:vars]
-ansible_ssh_host: 10.35.76.206
-hostname: control-plane-2.ocp41.sales.lab.tlv.redhat.com
-macaddress: 00:50:56:8e:33:cb
+ansible_ssh_host: 10.x.x.206
+hostname: control-plane-2.ocp41.example.redhat.com
+macaddress: 00:50:56:8e:34:cb
 
 [compute-0:vars]
-ansible_ssh_host: 10.35.76.201
-hostname: compute-0.ocp41.sales.lab.tlv.redhat.com
-macaddress: 00:50:56:8e:ae:37
+ansible_ssh_host: 10.x.x.201
+hostname: compute-0.ocp41.example.redhat.com
+macaddress: 00:50:56:4e:ae:37
 
 [compute-1:vars]
-ansible_ssh_host: 10.35.76.202
-hostname: compute-1.ocp41.sales.lab.tlv.redhat.com
-macaddress: 00:50:56:8e:7f:0e
+ansible_ssh_host: 10.x.x.202
+hostname: compute-1.ocp41.example.redhat.com
+macaddress: 00:50:56:9e:7f:0e
 
 [compute-2:vars]
-ansible_ssh_host: 10.35.76.203
-hostname: compute-2.ocp41.sales.lab.tlv.redhat.com
-macaddress: 00:50:56:8e:d5:ba
+ansible_ssh_host: 10.x.x.203
+hostname: compute-2.ocp41.example.redhat.com
+macaddress: 00:50:56:8e:d3:ba
 
 [all_infra:children]
 dhcpclients

@@ -35,5 +35,37 @@ What are the prerequisites?
  - RHEL 7.6 Template for Installer/Helper VM without any packages, but with Vmware tools (Will take more time to install all required packages) or
  
  - RHEL 7.6 Template for Installer/Helper VM with all packages by Running (Vmware-deploy and Ocp4-preinstall playbooks) and after that creating Template from this machine (Workflow will run faster)
+ 
+# What does the playbooks do?
+
+All the tasks needed to get your OCP 4.x installed and running in VMware using UPI method from Ansible Tower + helper host:
+
+Create Helper VM
+
+Install / Check the relevant packages, configure HTTP Server on helper server, Configure NTP Services
+
+Download and install CLI
+
+Download OpenShift installer
+
+Generate an install-config.yaml for installation customization
+
+Generate ignition files for CoreOS machines
+
+Provision CoreOS VMs on vSphere
+
+Power On CoreOS VMs and allow ignition files to configure machines on first boot
+
+Optionally destroy CoreOS machines
+
+Optionally Clean your helper VM and Ansible Tower configuration related to previous cluster deployment
+
+Change CoreOS VMs hostnames
+
+Run the installation
+
+Patch Image-Registry pod to use Empty Dir
+
+Complete the installation
 
 

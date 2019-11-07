@@ -26,9 +26,7 @@ What are the prerequisites?
  
  - Prepare Storage accordingly (NFS, GlusterFS, VMDK) accordingly
  
- - DHCP configuration (Link will be provided here)
- 
- - DNS configuration (Link will be provided here)
+ - DHCP & DNS configuration "https://github.com/Ayakobov/ocp4-deployment/blob/master/DHCP%20%26b%20DNS%20prerequisites, here"
  
  - Firewall configurations (Link will be provided here)
  

@@ -1,0 +1,329 @@
+# DHCP & DNS prerequisites
+
+
+We can have different scenarios:
+
+
+IT DHCP will provide random IP addresses for our OCP 4.x VMs and additional options like DNS with all relevant records managed in this IT DNS and resolution for Internet access addresses.
+
+
+IT DHCP will provide random IP addresses for our OCP 4.x VMs and additional options like DNS, but we will manage our own DNS Zone for OCP 4.1 Cluster, in this case we need to ask IT DNS Administrator to provide delegation in the IT DNS Server to our DNS Server for our DNS Zone and all resolutions for Internet access addresses will be done by IT DNS servers.
+
+
+IT DHCP will provide reserved IP addresses for our OCP 4.x VMs and for those servers DNS Server option will be changed to our DNS Server, in this case we need to ask IT DNS Administrator to provide delegation in the IT DNS Server to our DNS Server for our DNS Zone and all resolutions for Internet access addresses will be done by IT DNS servers, and we need to define IT DNS Servers in our DNS Server’s named.conf file.
+
+Scenario #1
+IT DHCP will provide random IP addresses for our OCP 4.x VMs and additional options like DNS with all relevant records managed in this IT DNS and resolution for Internet access addresses.
+
+In this scenario you open Ticket to your IT and provide the relevant records that he should register in the IT DNS and after completing their part you can continue to the next step.
+
+
+The relevant records are, for example:
+
+
+haproxy             IN       A 10.x.x.248
+master-1            IN       A 10.x.x.223
+master-2            IN       A 10.x.x.221
+master-3            IN       A 10.x.x.238
+worker-1            IN       A 10.x.x.226
+worker-2            IN       A 10.x.x.220
+worker-3            IN       A 10.x.x.233
+etcd-0                IN       A 10.x.x.223
+etcd-1                IN       A 10.x.x.221
+etcd-2                IN       A 10.x.x.238
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-0
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-1
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-2
+bootstrap-1         IN        A 10.35.76.240
+api                       IN       A 10.x.x.248
+api-int                  IN       A 10.x.x.248
+$ORIGIN apps.ocp42.sales.lab.tlv.redhat.com.
+*                           IN       A 10.x.x.248
+
+Note: If IT DHCP will provide random IP addresses and not static IP addresses, you will need to proceed to the step 4.5 - Pre-install configuration and only after completing all those steps and Powering ON VMs you will be able to provide IT allocated random IP addresses to allow him to register them in IT DNS. And after completing by IT DNS record you can continue to step 4.4.
+
+Scenario #2
+	IT DHCP will provide random IP addresses for our OCP 4.x VMs and additional options like DNS, 
+but we will manage our own DNS Zone for OCP 4.x Cluster, in this case we need to ask IT DNS Administrator to provide delegation in the IT DNS Server to our DNS Server for our DNS Zone and all resolutions for Internet access addresses will be done by IT DNS servers.
+
+For this scenario we need to install on our RHEL server that supposed to be DNS (In our case server with IP 10.x.x.249) BIND
+yum install -y named
+
+GUIDE | private name-server under the lab
+Hi,
+You can use this email as a guide for zone delegation in the lab DNS structure
+Basically we're using zone delegation when a customer has a special requirements and a need to manage a DNS server on his own.
+In order to chain a private NS to the lab DNS servers a couple of records needs to be added to the SOA (centraldns_example.redhat.com or TLV slave)
+The first record is a ns delegation, starting with the sub-zone that needs to be delegated and ends with the private NS FQDN.
+The second record is an A record that is resolving to that same FQDN, because without it the SOA won't know what is that hostname under that subzone - known as a glue record.
+Example:
+$ORIGIN example.redhat.com.
+ocp41               NS      ns.example.redhat.com.
+                         TXT     "owner=ayakoubo"
+ns.ocp41           A         10.x.x.249
+Once you add these two records, all queries under the zone "ocp41.example.redhat.com" will be forwarded to the private ns.
+Please note - you shouldn't configure on your clients your private ns address is their DNS server, if you'll do that you won't get and DNS resolution outside of that subzone, including public internet.
+All systems should have the lab NS as their DNS server.
+
+Systems Administrator 
+Engineering Labs Team
+
+After IT team will complete Delegation you can create the relevant zone in your DNS Server
+We created zones ocp41.example.redhat.com and ocp42.example.redhat.com.
+
+For example, our ocp42.example.redhat.com looks as shown below:
+
+[root@ocprepo ~]# cat /var/named/ocp42.example.redhat.com.zone
+$TTL    86400
+@  1D  IN  SOA ns.ocp42.sales.lab.tlv.redhat.com. hostmaster.ocp42.example.redhat.com (
+  2002022429 ; serial
+  3H ; refresh
+  15 ; retry
+  1w ; expire
+  3h ; nxdomain ttl
+ )
+   IN  NS     ns.ocp42.example.redhat.com.
+
+$ORIGIN ocp42.example.redhat.com.
+
+; server host definitions
+ns                  IN       A 10.x.x.249
+haproxy             IN       A 10.x.x.248
+master-1            IN       A 10.x.x.223
+master-2            IN       A 10.x.x.221
+master-3            IN       A 10.x.x.238
+worker-1            IN       A 10.x.x.226
+worker-2            IN       A 10.x.x.220
+worker-3            IN       A 10.x.x.233
+etcd-0              IN       A 10.x.x.223
+etcd-1              IN       A 10.x.x.221
+etcd-2              IN       A 10.x.x.238
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-0
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-1
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-2
+bootstrap-1         IN       A 10.x.x.240
+api                 IN       A 10.x.x.248
+api-int             IN       A 10.x.x.248
+
+$ORIGIN apps.ocp42.sales.lab.tlv.redhat.com.
+*                  IN       A 10.x.x.248
+
+In addition we need to edit /etc/named.conf and add our zone
+zone "ocp42.example.redhat.com" in {
+   type master;
+   file "ocp42.example.redhat.com.zone";
+};
+systemctl restart named
+systemctl status named
+
+
+Scenario #3
+IT DHCP will provide reserved IP addresses for our OCP 4.x VMs and for those servers DNS Server option will be changed to our DNS Server, in this case we need to ask IT DNS Administrator to provide delegation in the IT DNS Server to our DNS Server for our DNS Zone and all resolutions for Internet access addresses will be done by IT DNS servers, and we need to define IT DNS Servers in our DNS Server’s named.conf file.
+
+In this scenario you need to continue first to step 4.4 until you complete VM creation but before powering them On, and provide your machines MAC addresses to your IT Admin to allow him to define DHCP reservations.
+
+For example, mail to SysAdmin
+Hi,
+I am in charge of deployment of OCP 4.x for our big customers and I
+need your help as follow ASAP:
+1. DHCP
+
+bootstrap-0  MAC Address: 00:50:56:82:32:fd   IP Reservation 10.x.x.200
+compute-0   MAC Address: 00:50:56:83:a3:37   IP Reservation 10.x.x.201
+compute-1   MAC Address: 00:50:56:83:7f:0e   IP Reservation 10.x.x.202
+compute-2   MAC Address: 00:50:56:84:d5:ba   IP Reservation 10.x.x.203
+control-plane-0   MAC Address: 00:50:56:84:eb:c5  IP
+Reservation 10.x.x.204
+control-plane-1   MAC Address: 00:50:56:8f:d9:9b   IP
+Reservation 10.x.x.205
+control-plane-2   MAC Address: 00:50:56:8e:31:cb   IP
+Reservation 10.x.x.206
+
+For this scenario we need to install on our RHEL server that supposed to be DNS (In our case server with IP 10.x.x.249) BIND
+yum install -y named
+
+GUIDE | private name-server under the lab
+Hi,
+You can use this email as a guide for zone delegation in the lab DNS structure
+Basically we're using zone delegation when a customer has a special requirements and a need to manage a DNS server on his own.
+In order to chain a private NS to the lab DNS servers a couple of records needs to be added to the SOA (dns.engineering.redhat.com or TLV slave)
+The first record is a ns delegation, starting with the sub-zone that needs to be delegated and ends with the private NS FQDN.
+The second record is an A record that is resolving to that same FQDN, because without it the SOA won't know what is that hostname under that subzone - known as a glue record.
+Example:
+$ORIGIN sales.lab.tlv.redhat.com.
+ocp41               NS      ns.ocp41.example.redhat.com.
+                         TXT     "owner=ayakoubo"
+ns.ocp41           A         10.x.x.249
+Once you add these two records, all queries under the zone "ocp41.example.redhat.com" will be forwarded to the private ns.
+Please note - you shouldn't configure on your clients your private ns address is their DNS server, if you'll do that you won't get and DNS resolution outside of that subzone, including public internet.
+All systems should have the lab NS as their DNS server.
+Thanks --
+
+Systems Administrator 
+Engineering Labs Team
+
+After IT team will complete Delegation you can create the relevant zone in your DNS Server
+We created zones ocp41.example.redhat.com and ocp42.example.redhat.com.
+
+For example, our ocp41.example.redhat.com looks as shown below:
+
+[root@ocprepo ~]# cat /var/named/ocp41.example.redhat.com.zone
+$TTL    86400
+@  1D  IN  SOA ns.ocp41.example.redhat.com. hostmaster.ocp41.example.redhat.com (
+  2002022419 ; serial
+  3H ; refresh
+  15 ; retry
+  1w ; expire
+  3h ; nxdomain ttl
+ )
+   IN  NS     ns.ocp41.example.redhat.com.
+
+$ORIGIN ocp41.example.redhat.com.
+
+; server host definitions
+ns                  IN       A 10.x.x.249
+bootstrap-0        IN       A 10.x.x.200
+control-plane-0    IN       A 10.x.x.204
+control-plane-1    IN       A 10.x.x.205
+control-plane-2    IN       A 10.x.x.206
+compute-0          IN       A 10.x.x.201
+compute-1          IN       A 10.x.x.202
+compute-2          IN       A 10.x.x.203
+api                IN       A 10.x.x.200
+api                IN       A 10.x.x.204
+api                IN       A 10.x.x.205
+api                IN       A 10.x.x.206
+api-int            IN       A 10.x.x.200
+api-int            IN       A 10.x.x.204
+api-int            IN       A 10.x.x.205
+api-int            IN       A 10.x.x.206
+etcd-0             IN       A 10.x.x.204
+etcd-1             IN       A 10.x.x.205
+etcd-2             IN       A 10.x.x.206
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-0
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-1
+_etcd-server-ssl._tcp IN SRV 0 10 2380 etcd-2
+bootstrap-1         IN       A 10.x.x.228
+api                 IN       A 10.x.x.248
+api-int             IN       A 10.x.x.248
+
+$ORIGIN apps.ocp41.sales.lab.tlv.redhat.com.
+*                  IN       A 10.x.x.201
+*                  IN       A 10.x.x.202
+*                  IN       A 10.x.x.203
+
+In this example we used DNS as Load Balancer to avoid haproxy usage.
+
+In addition we need to edit /etc/named.conf and add our zone and Forwarders
+
+vi /etc/named.conf
+options {
+	listen-on port 53 { 10.x.x.249; };
+	listen-on-v6 port 53 { ::1; };
+	directory 	"/var/named";
+	dump-file 	"/var/named/data/cache_dump.db";
+	statistics-file "/var/named/data/named_stats.txt";
+	memstatistics-file "/var/named/data/named_mem_stats.txt";
+	recursing-file  "/var/named/data/named.recursing";
+	secroots-file   "/var/named/data/named.secroots";
+	allow-query     { any; };
+
+        forwarders {
+                10.x.x.31;
+                10.x.x.1;            
+                10.x.x.2;
+                10.x.x.3;
+                10.x.x.4;
+        };
+zone "ocp41.example.redhat.com" in {
+   type master;
+   file "ocp41.example.redhat.com.zone";
+};
+
+systemctl restart named
+systemctl status named
+
+*Note: you need to add your bootstrap machine also to api and api-int records for deployment purposes, after deployment completion you should remove records of api and api-int pointing to bootstrap machine
+
+For reference, example of our full /etc/named.conf file
+
+[root@ocprepo ~]# cat /etc/named.conf
+//
+// named.conf
+//
+// Provided by Red Hat bind package to configure the ISC BIND named(8) DNS
+// server as a caching only nameserver (as a localhost DNS resolver only).
+//
+// See /usr/share/doc/bind*/sample/ for example named configuration files.
+//
+// See the BIND Administrator's Reference Manual (ARM) for details about the
+// configuration located in /usr/share/doc/bind-{version}/Bv9ARM.html
+
+options {
+	listen-on port 53 { 10.x.x.249; };
+	listen-on-v6 port 53 { ::1; };
+	directory 	"/var/named";
+	dump-file 	"/var/named/data/cache_dump.db";
+	statistics-file "/var/named/data/named_stats.txt";
+	memstatistics-file "/var/named/data/named_mem_stats.txt";
+	recursing-file  "/var/named/data/named.recursing";
+	secroots-file   "/var/named/data/named.secroots";
+	allow-query     { any; };
+
+        forwarders {
+                10.x.x.31;
+                10.x.x.1;
+                10.x.x.2;
+                10.x.x.3;
+                10.x.x.4;
+        };
+
+
+	/*
+	 - If you are building an AUTHORITATIVE DNS server, do NOT enable recursion.
+	 - If you are building a RECURSIVE (caching) DNS server, you need to enable
+	   recursion.
+	 - If your recursive DNS server has a public IP address, you MUST enable access
+	   control to limit queries to your legitimate users. Failing to do so will
+	   cause your server to become part of large scale DNS amplification
+	   attacks. Implementing BCP38 within your network would greatly
+	   reduce such attack surface
+	*/
+	recursion yes;
+
+	dnssec-enable yes;
+	dnssec-validation yes;
+
+	/* Path to ISC DLV key */
+	bindkeys-file "/etc/named.iscdlv.key";
+
+	managed-keys-directory "/var/named/dynamic";
+
+	pid-file "/run/named/named.pid";
+	session-keyfile "/run/named/session.key";
+};
+
+logging {
+        channel default_debug {
+                file "data/named.run";
+                severity dynamic;
+        };
+};
+
+zone "." IN {
+	type hint;
+	file "named.ca";
+};
+
+zone "ocp41.example.redhat.com" in {
+   type master;
+   file "ocp41.example.redhat.com.zone";
+};
+
+zone "ocp42.example.redhat.com" in {
+   type master;
+   file "ocp42.example.redhat.com.zone";
+};
+
+include "/etc/named.rfc1912.zones";
+include "/etc/named.root.key";

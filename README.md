@@ -26,9 +26,9 @@ What are the prerequisites?
  
  - Prepare Storage accordingly (NFS, GlusterFS, VMDK) accordingly
  
- - DHCP & DNS configuration "https://github.com/Ayakobov/ocp4-deployment/blob/master/DHCP%20%26b%20DNS%20prerequisites, here"
+ - DHCP & DNS configuration https://github.com/Ayakobov/ocp4-deployment/blob/master/DHCP%20%26b%20DNS%20prerequisites
  
- - Firewall configurations (Link will be provided here)
+ - Firewall configurations (Will be done by one of playbooks)
  
  - RHEL 7.6 Template for Installer/Helper VM without any packages, but with Vmware tools (Will take more time to install all required packages) or
  

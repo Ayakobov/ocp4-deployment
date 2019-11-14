@@ -59,6 +59,9 @@
     state: directory
     mode: 0644
 
+- name: adding oc completion to bash-completion
+  command: "oc completion bash >/etc/bash_completion.d/oc_completion"
+
 - name: Copy Tower SSH Key pairs to Installer
   template:
     src: "{{ item }}"

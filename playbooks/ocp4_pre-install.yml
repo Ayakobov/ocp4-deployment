@@ -12,47 +12,47 @@
    - include: include/rhelsubmgr.yml
      when: rheluser is defined
 
-   - name: install support packages
-     package:
-       name: "{{item}}"
-       state: present
-     with_items:
-       - wget
-       - git
-       - net-tools
-       - bind-utils
-       - yum-utils
-       - iptables-services
-       - bridge-utils
-       - bash-completion
-       - kexec-tools
-       - sos
-       - psacct
-       - ntp
-       - zip
-       - unzip
-       - httpd
-       - python-netaddr
-       - vim
-       - lsof
-       - mlocate
-       - traceroute
-
-   - name: fetch epel-release
-     get_url:
-       url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-       dest: /var/tmp/epel-release-latest-7.noarch.rpm
-       remote_src: yes
-
-   - name: install epel packages
-     package:
-       name: "{{item}}"
-       state: present
-     with_items:
-       - /var/tmp/epel-release-latest-7.noarch.rpm
-       - python27-python-pip
-       - python-pip
-       - htop
+#   - name: install support packages
+#     package:
+#       name: "{{item}}"
+#       state: present
+#     with_items:
+#       - wget
+#       - git
+#       - net-tools
+#       - bind-utils
+#       - yum-utils
+#       - iptables-services
+#       - bridge-utils
+#       - bash-completion
+#       - kexec-tools
+#       - sos
+#       - psacct
+#       - ntp
+#       - zip
+#       - unzip
+#       - httpd
+#       - python-netaddr
+#       - vim
+#       - lsof
+#       - mlocate
+#       - traceroute
+#
+#   - name: fetch epel-release
+#     get_url:
+#       url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+#       dest: /var/tmp/epel-release-latest-7.noarch.rpm
+#       remote_src: yes
+#
+#   - name: install epel packages
+#     package:
+#       name: "{{item}}"
+#       state: present
+#     with_items:
+#       - /var/tmp/epel-release-latest-7.noarch.rpm
+#       - python27-python-pip
+#       - python-pip
+#       - htop
 
    - name:     Configure NTP | Add server lines to ntp.conf
      template:

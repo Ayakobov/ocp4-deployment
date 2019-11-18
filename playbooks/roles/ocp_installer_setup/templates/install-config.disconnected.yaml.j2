@@ -1,0 +1,88 @@
+apiVersion: v1
+baseDomain: "{{ base_domain }}"
+compute:
+- hyperthreading: Enabled   
+  name: worker
+  replicas: 3
+controlPlane:
+  hyperthreading: Enabled   
+  name: master
+  replicas: 3 
+metadata:
+  name: "{{ cluster_name }}"
+platform:
+  vsphere:
+    vcenter: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_user }}"
+    password: "{{ vcenter_pass }}"
+    datacenter: "{{ vcenter_datacenter }}" 
+    defaultDatastore: "{{ vcenter_datastore }}"
+pullSecret: '{
+   "auths":{
+      "cloud.openshift.com":{
+         "auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2F5YWtvdWJvMWVmYXRhamY4enRtcm5sa2kybDE1M2VsY3ZvOlo1ODRKSEFRWU5NWkhGS0gxWDI3WVg0V1BFUjI3VkYxOVlCV0cwUEtXUkI5WUVPTlk0TzNUSDlTSUUzTTFOTlo=",
+         "email":"anoel@redhat.com"
+      },
+      "quay.io":{
+         "auth":"b3BlbnNoaWZ0LXJlbGVhc2UtZGV2K2F5YWtvdWJvMWVmYXRhamY4enRtcm5sa2kybDE1M2VsY3ZvOlo1ODRKSEFRWU5NWkhGS0gxWDI3WVg0V1BFUjI3VkYxOVlCV0cwUEtXUkI5WUVPTlk0TzNUSDlTSUUzTTFOTlo=",
+         "email":"anoel@redhat.com"
+      },
+      "registry.connect.redhat.com":{
+         "auth":"NTE5ODI1Mjd8dWhjLTFFRkFUYWpGOFpUbXJuTGtpMmwxNTNlbGN2TzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTNZbUppWldKbFpUbG1OV0kwTjJZeU9HSXlOR0psWkRJMVpqazVaRFUzWlNKOS5OTzJDMUZqbm9fLUJpTGlHVkRwamV3QXhoU0VLZEZQTGtXYXhLSHg5ZGxoWWd4amc5SFRNaXVCbmpHMG1LVTQwMXhrZEd2RnVjRXpndFl0VFJSUmItZlpDTXdxMkdIZVgxejNTandZcUJoTm1ILVFueGR6djUybGFrdHFQek9HTXk2Tlp6bkdJV2RUM0cxUENmNlpUWFdSOFFvT19RYWtRUHZpa1ZrQjJOMGpFQndLRlZ0MF9sZkdUVldBLXMtdDZzeHZjbHpISVBhX0ZoVnNTQTFHVFdWdGZlb0FvdXNjQnByWjZyazU5T1VIUXdUV1JBbTNLMlQ3MEpSVkpnTXFSQkpjRXFWcFNnV1dRTnk5aWg3NVlJRUFLaWxuN210WWJFMGEtZmkyRHlKYk5NczllNk1nX1loMGZ3VE5QRVF2N0p3QXdnSEh5MkZwa3NsMnNGeGM4SmF2eVM5dndSTnZZWVkzZUhvWGR3Y2JEYjVjUkR0X3ZfMy1BdWFfVWt1M29EOXFpbzRwOUxDcS0xR05MMS1kYU1CNEVSTzJpNktHV1p0bnd0bDdJU1E5SW8xckdaUGt3YnAzZlpXTVRiVVFXWXNtUXVjc3QwQkRXQzFWWnlRQVppaGI0dDhiSS1uR2JHUzNMaWc0NkJEc3puUmRiTnVGQjgwbGdYMnVzbVdPYS03ckdWb0tYdkczak5hTVBxeGdfYm9qajJrNFJ1MVpTWG9rb01XVFlscDQ1cUxsRkNrcVFTX2prRGNFRXdrSjVub3BnWVh5eEtPS2pZZTVZcU83V3FqaW10WjB0anRyQWF4OHJBR3NfcEtyZHMzQzJYRGZzT0VnNG1iOWlPNXFfcldrYkU1UVNpSy11VDMwTDRfV2NvNC0tSnpRQTVWcVhmdGJMSWRqYmJGVQ==",
+         "email":"anoel@redhat.com"
+      },
+      "registry.redhat.io":{
+         "auth":"NTE5ODI1Mjd8dWhjLTFFRkFUYWpGOFpUbXJuTGtpMmwxNTNlbGN2TzpleUpoYkdjaU9pSlNVelV4TWlKOS5leUp6ZFdJaU9pSTNZbUppWldKbFpUbG1OV0kwTjJZeU9HSXlOR0psWkRJMVpqazVaRFUzWlNKOS5OTzJDMUZqbm9fLUJpTGlHVkRwamV3QXhoU0VLZEZQTGtXYXhLSHg5ZGxoWWd4amc5SFRNaXVCbmpHMG1LVTQwMXhrZEd2RnVjRXpndFl0VFJSUmItZlpDTXdxMkdIZVgxejNTandZcUJoTm1ILVFueGR6djUybGFrdHFQek9HTXk2Tlp6bkdJV2RUM0cxUENmNlpUWFdSOFFvT19RYWtRUHZpa1ZrQjJOMGpFQndLRlZ0MF9sZkdUVldBLXMtdDZzeHZjbHpISVBhX0ZoVnNTQTFHVFdWdGZlb0FvdXNjQnByWjZyazU5T1VIUXdUV1JBbTNLMlQ3MEpSVkpnTXFSQkpjRXFWcFNnV1dRTnk5aWg3NVlJRUFLaWxuN210WWJFMGEtZmkyRHlKYk5NczllNk1nX1loMGZ3VE5QRVF2N0p3QXdnSEh5MkZwa3NsMnNGeGM4SmF2eVM5dndSTnZZWVkzZUhvWGR3Y2JEYjVjUkR0X3ZfMy1BdWFfVWt1M29EOXFpbzRwOUxDcS0xR05MMS1kYU1CNEVSTzJpNktHV1p0bnd0bDdJU1E5SW8xckdaUGt3YnAzZlpXTVRiVVFXWXNtUXVjc3QwQkRXQzFWWnlRQVppaGI0dDhiSS1uR2JHUzNMaWc0NkJEc3puUmRiTnVGQjgwbGdYMnVzbVdPYS03ckdWb0tYdkczak5hTVBxeGdfYm9qajJrNFJ1MVpTWG9rb01XVFlscDQ1cUxsRkNrcVFTX2prRGNFRXdrSjVub3BnWVh5eEtPS2pZZTVZcU83V3FqaW10WjB0anRyQWF4OHJBR3NfcEtyZHMzQzJYRGZzT0VnNG1iOWlPNXFfcldrYkU1UVNpSy11VDMwTDRfV2NvNC0tSnpRQTVWcVhmdGJMSWRqYmJGVQ==",
+         "email":"anoel@redhat.com"
+      },
+      "ocp4-registry.ocp42.sales.lab.tlv.redhat.com:5000":{
+         "auth": "YWRtaW46UGFzc3dvcmRAMTIz"
+      }
+   }
+}'
+sshKey: "{{ lookup('file', '{{ role_path }}/templates/id_rsa.pub') }}"
+
+additionalTrustBundle: |
+  -----BEGIN CERTIFICATE-----
+  MIIGJTCCBA2gAwIBAgIJANInFgGtxkBKMA0GCSqGSIb3DQEBCwUAMIGoMQswCQYD
+  VQQGEwJJTDEQMA4GA1UECAwHY2VudHJhbDEQMA4GA1UEBwwHUmFhbmFuYTEPMA0G
+  A1UECgwGUmVkaGF0MQwwCgYDVQQLDANHUFMxNTAzBgNVBAMMLG9jcDQtcmVnaXN0
+  cnkub2NwNDIuc2FsZXMubGFiLnRsdi5yZWRoYXQuY29tMR8wHQYJKoZIhvcNAQkB
+  FhBhbm9lbEByZWRoYXQuY29tMB4XDTE5MTExMzA5NDQxN1oXDTIwMTExMjA5NDQx
+  N1owgagxCzAJBgNVBAYTAklMMRAwDgYDVQQIDAdjZW50cmFsMRAwDgYDVQQHDAdS
+  YWFuYW5hMQ8wDQYDVQQKDAZSZWRoYXQxDDAKBgNVBAsMA0dQUzE1MDMGA1UEAwws
+  b2NwNC1yZWdpc3RyeS5vY3A0Mi5zYWxlcy5sYWIudGx2LnJlZGhhdC5jb20xHzAd
+  BgkqhkiG9w0BCQEWEGFub2VsQHJlZGhhdC5jb20wggIiMA0GCSqGSIb3DQEBAQUA
+  A4ICDwAwggIKAoICAQDAUtNr5oTbs4iWVk7hYVODYiwzYKzzVfaYk9cY3ERQyVJh
+  kN4TM+7sk+zGu1NKviID22vIcTrWROimCPu0hU6uJK3NLV4t2t2AnXOiaFTIqIaH
+  3uxaRmDpXcPC1/8KPJMibNV6l8DOkdpdzzkBaIv3beKKHEwtb0dy7jDxbqOQ6LFc
+  tCOYVQuNeUicaTj1o6Ptt75xM7G/wT7ezKNyStQEFzZH7POzOIkVgyfM6ptd+x/H
+  QU/lj3b2tp8C0K7b/EfXQFrPATc8Evn6/vgRZPFsNMgYA1JKbs6IJ+r2Ix2sPecR
+  JXA2UOEzQaSEFPMBmS65tbigWS4a9fWYKkLXm1bYZPGthWFURVbqcC/A0684alYu
+  mjfBi099HF5K+AiFM/zGA4HCBaza8OqKUAv4daSS4UnGNI15sEQy8L51cQGiF27G
+  1j8a4zOu4UKXprCy2R9y4L1VYcaki/iezQs2YFKmp86LKLgpm7FuC6HL/6iJjp6g
+  6X0yLfsXcU0MFZr3P6ZaMcINg7mb5BIHUgDXC4X8iWfw+agySrLtmn3JtQwBWLLs
+  19ipbBCIfZyaxFG6LSV4dBU0dtRT/KvJvaJQs9SFcLPjEvT5vbxCQPVlzprMk3M+
+  wzU5Z2ua/CAgHRCeystZ3eW5n7hs/BuncM0ELOFf1Dh5qhX9V8YAwMWSP0NztwID
+  AQABo1AwTjAdBgNVHQ4EFgQUq1HwBI+WDvwOccRNOKMv4hWcAzQwHwYDVR0jBBgw
+  FoAUq1HwBI+WDvwOccRNOKMv4hWcAzQwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0B
+  AQsFAAOCAgEAoiJC+HCJIh6rDZIGoScGhPT5hMSMrY9+Bknc6qazZoptOo3prAQB
+  9xr69JBeyJ4AxzE4eesDHheIKY7jAnyQeZZQf69cAU//+BL/k6Kk0z+fEItatwFF
+  VB1/NhniY/M4yYK3y5A7eWFiU8Pggz4IWYfxCQnx/+V2hQWKLzHkeYmQRX4cLXS+
+  a2kS8yckprhVrZk0bLahR5LBABnBL3ri9JlkgWgk4qabjNqDKo9N5e7VvFU+K6AD
+  6XyAiAMxRetGLP4Pc8ueEnGF0ikKdE++NV8Kv4nxjeaWzNlNO6lzcMNjtODw2n1U
+  D3dqqyfBphFNPy26qN5uxP1JX2y9D93L9Z+1EFbTk+zp4zbAlqtXmeC2sTOZBEND
+  jCNQv38neL0RAdQjWr5NsXTGV2oizGscoTmnCCXA7dFuU5MOgmK3s/5gHGvZi+2L
+  ElrxsK9XT30anLAsDmR2HAVsjyEMhZa5snpwwiGVywgX0tMC252AUwpBIdhM/XQF
+  eczuH5inivX7D3nURJ4L744ZMsrYw7nP88PlD+HMmlT7cqJOTIJuCTdysxOHTu8L
+  lmBm/ghkWRhsjw77SlRxCKWb2IqyrJqL5SdrXpjQj/kc64/ihOdQwHZ0GXuobYJi
+  l9PWn1ThODrQx97K4OUOtGY5Z1+duXA96TVvnUMpZTMQqKZCX6M3YVQ=
+  -----END CERTIFICATE-----
+
+imageContentSources:
+- mirrors:
+  - ocp4-registry.ocp42.sales.lab.tlv.redhat.com:5000/ocp4/openshift4
+  source: quay.io/openshift-release-dev/ocp-release
+- mirrors:
+  - ocp4-registry.ocp42.sales.lab.tlv.redhat.com:5000/ocp4/openshift4
+  source: quay.io/openshift-release-dev/ocp-v4.0-art-dev

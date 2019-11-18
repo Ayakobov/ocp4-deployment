@@ -30,17 +30,28 @@
   pip:
     name: pyvmomi
 
-- name: fetch installer
-  get_url:
-    url: "{{ ocp_web }}/{{ ocp_version }}/openshift-install-linux-{{ ocp_version }}.tar.gz"
-    dest: /var/tmp/openshift-install-linux-{{ ocp_version }}.tar.gz
-    remote_src: yes
+- name: Set UTC Timezone for helper server
+  shell: "timedatectl set-timezone UTC"
 
-- name: fetch clients
+- name: fetch installer and client-Connected
   get_url:
-    url: "{{ ocp_web }}/{{ ocp_version }}/openshift-client-linux-{{ ocp_version }}.tar.gz"
-    dest: /var/tmp/openshift-client-linux-{{ ocp_version }}.tar.gz
+    url: "{{ ocp_web }}/{{ ocp_version }}/{{ item }}"
+    dest: "/var/tmp/{{ item }}"
     remote_src: yes
+  when: yumrepo_url is undefined
+  with_items:
+    - openshift-install-linux-{{ ocp_version }}.tar.gz
+    - openshift-client-linux-{{ ocp_version }}.tar.gz
+
+- name: fetch installer and client - Disconnected
+  get_url:
+    url: "{{ yumrepo_url }}/{{ item }}"
+    dest: "/var/tmp/{{ item }}"
+    remote_src: yes
+  when: yumrepo_url is defined
+  with_items:
+    - openshift-install-linux-{{ ocp_version }}.tar.gz
+    - openshift-client-linux-{{ ocp_version }}.tar.gz
 
 - name: extract installer and client
   become: true
@@ -59,11 +70,22 @@
     state: directory
     mode: 0644
 
+- name: adding oc completion to bash-completion
+  shell: "oc completion bash > /etc/bash_completion.d/oc_completion"
+
+- name: Add a line to resolv.conf file
+  lineinfile:
+    path: /etc/resolv.conf
+    regexp: "'^search'"
+    insertbefore: '^nameserver'
+    firstmatch: yes
+    line: "search {{ searchdomain }}"
+
 - name: Copy Tower SSH Key pairs to Installer
   template:
     src: "{{ item }}"
     dest: /root/.ssh/
-    mode: 0644
+    mode: 0600
   with_items:
     - "id_rsa"
     - "id_rsa.pub"
@@ -106,17 +128,19 @@
 #    src: /root/.ssh/id_rsa.pub
 #    dest: "{{ role_path }}/templates/"
 
-- name: copy config file to correct place
+- name: copy config file to correct place-connected
   template:
-    src: templates/install-config.yaml.j2
+    src: templates/install-config.connected.yaml.j2
     dest: "{{ install_dir }}/install-config.yaml"
     mode: 0644
+  when: yumrepo_url is undefined
 
-- name: take a copy of install-config.yaml file to home directory for referrence
+- name: copy config file to correct place- disconnected
   template:
-    src: templates/install-config.yaml.j2
-    dest: /var/tmp/install-config.yaml
+    src: templates/install-config.disconnected.yaml.j2
+    dest: "{{ install_dir }}/install-config.yaml"
     mode: 0644
+  when: yumrepo_url is defined
 
 - name: create ignition configs
   shell: "/usr/local/bin/openshift-install create ignition-configs --dir={{ install_dir }}"

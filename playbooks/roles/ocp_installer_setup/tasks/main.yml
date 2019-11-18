@@ -71,6 +71,7 @@
     mode: 0644
 
 - name: adding oc completion to bash-completion
+<<<<<<< HEAD
   shell: "oc completion bash > /etc/bash_completion.d/oc_completion"
 
 - name: Add a line to resolv.conf file
@@ -80,6 +81,9 @@
     insertbefore: '^nameserver'
     firstmatch: yes
     line: "search {{ searchdomain }}"
+=======
+  shell: "oc completion bash >/etc/bash_completion.d/oc_completion"
+>>>>>>> b21534b789391b65eb879e9275accdd7ff3f4950
 
 - name: Copy Tower SSH Key pairs to Installer
   template:

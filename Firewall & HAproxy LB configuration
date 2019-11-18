@@ -1,0 +1,151 @@
+# Firewall & HAproxy LB configuration
+
+ #Firewall
+
+You can decide to disable firewalld - if it is test cluster or security is not your concern, or you need to create the relevant rules if firewall enabled in your installer machine.
+
+firewall-cmd --add-port 22623/tcp --perm
+firewall-cmd --add-port 6443/tcp --perm
+firewall-cmd --add-service https --perm
+firewall-cmd --add-service http --perm
+systemctl reload firewalld
+firewall-cmd --list-ports
+22623/tcp 6443/tcp
+firewall-cmd --list-services
+http https ssh
+
+ #HAproxy LB configuration
+
+You can use your DNS as Load Balancer (See Scenario #2 in DNS section) and in this case you don’t need additional server that will serve you as HAproxy Load Balancer.
+
+If you decided to use HAProxy as your Load Balancer you need one more RHEL VM, in our case we used VM haproxy with IP address 10.35.76.248. (You can’t use DNS server as HAproxy if you are using it as your HTTP Server since both of them need port 80 available)
+
+yum install -y haproxy
+
+Configure your /etc/haproxy/haproxy.conf as in the next example from our case
+
+[root@haproxy ~]# cat /etc/haproxy/haproxy.cfg
+#---------------------------------------------------------------------
+# Example configuration for a possible web application.  See the
+# full configuration options online.
+#
+#   http://haproxy.1wt.eu/download/1.4/doc/configuration.txt
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    # to have these messages end up in /var/log/haproxy.log you will
+    # need to:
+    #
+    # 1) configure syslog to accept network log events.  This is done
+    #    by adding the '-r' option to the SYSLOGD_OPTIONS in
+    #    /etc/sysconfig/syslog
+    #
+    # 2) configure local2 events to go to the /var/log/haproxy.log
+    #   file. A line like the following can be added to
+    #   /etc/sysconfig/syslog
+    #
+    #    local2.*                       /var/log/haproxy.log
+    #
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+    ssl-default-bind-options no-sslv3
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    tcp
+    log                     global
+    option                  tcplog
+    option                  dontlognull
+    option http-server-close
+    #option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          5m
+    timeout server          5m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+listen stats
+    bind :32700
+    stats enable
+    stats uri /
+    stats hide-version
+    stats auth someuser:password
+
+         frontend bk_app *:443
+            bind *:443
+            mode tcp
+            default_backend bk_app
+        backend bk_app
+         balance source
+         mode tcp
+         server worker-1.ocp42.example.redhat.com 10.x.x.226:443
+         server worker-2.ocp42.example.redhat.com 10.x.x.220:443
+         server worker-3.ocp42.example.redhat.com 10.x.x.233:443
+
+         frontend http *:80
+            bind *:80
+            mode tcp
+            default_backend http
+
+        backend http
+         balance source
+         mode tcp
+         server worker-1.ocp42.example.redhat.com 10.x.x.226:80
+         server worker-2.ocp42.example.redhat.com 10.x.x.220:80
+         server worker-3.ocp42.example.redhat.com 10.x.x.233:80
+
+         frontend api *:6443
+            bind *:6443
+            mode tcp
+            default_backend api
+
+        backend api
+         balance source
+         mode tcp
+         server bootstrap-1.ocp42.example.redhat.com 10.x.x.240:6443
+         server master-1.ocp42.example.redhat.com 10.x.x.223:6443
+         server master-2.ocp42.example.redhat.com 10.x.x.221:6443
+         server master-3.ocp42.example.redhat.com 10.x.x.238:6443
+         frontend machine *:22623
+            bind *:22623
+            mode tcp
+            default_backend machine
+
+        backend machine
+         balance source
+         mode tcp
+         server bootstrap-1.ocp42.example.redhat.com 10.x.x.240:22623
+         server master-1.ocp42.example.redhat.com 10.x.x.223:22623
+         server master-2.ocp42.example.redhat.com 10.x.x.221:22623
+         server master-3.ocp42.example.redhat.com 10.x.x.238:22623
+
+Create /run/haproxy/ folder 
+
+mkdir /run/haproxy/
+systemctl restart haproxy
+systemctl status haproxy
+
+
+*Note: you need to add your bootstrap machine also to api and api-int backend for deployment purposes, after deployment completion you should remove records of api and api-int pointing to bootstrap machine

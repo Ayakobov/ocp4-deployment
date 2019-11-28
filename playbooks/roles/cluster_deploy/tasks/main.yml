@@ -1,21 +1,13 @@
 ---
-<<<<<<< HEAD
 - name: Wait for RHCOS VMs start 300 seconds, but only start checking after 10 seconds
   wait_for_connection:
     delay: 10
-    timeout: 300
-
-=======
-- name: Wait for RHCOS VMs start 600 seconds, but only start checking after 30 seconds
-  wait_for_connection:
-    delay: 30
     timeout: 600
-    
->>>>>>> b21534b789391b65eb879e9275accdd7ff3f4950
+
 - name: create cluster
   shell: "/usr/local/bin/openshift-install --dir={{ install_dir }} wait-for bootstrap-complete --log-level debug"
 
-- pause: seconds=150
+- pause: seconds=300
 
 - name: Add KUBECONFIG to .bashrc
   shell: |

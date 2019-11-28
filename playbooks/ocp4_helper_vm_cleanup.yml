@@ -3,8 +3,8 @@
    hosts: helper
    gather_facts: false
    serial: "100%"
-   roles:
-     - helper_vm_cleanup
+   #roles:
+    # - helper_vm_cleanup
    
  - name: Remove Folder from Tower  
    hosts: localhost

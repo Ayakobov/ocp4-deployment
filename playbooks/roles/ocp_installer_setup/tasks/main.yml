@@ -71,7 +71,6 @@
     mode: 0644
 
 - name: adding oc completion to bash-completion
-<<<<<<< HEAD
   shell: "oc completion bash > /etc/bash_completion.d/oc_completion"
 
 - name: Add a line to resolv.conf file
@@ -81,9 +80,6 @@
     insertbefore: '^nameserver'
     firstmatch: yes
     line: "search {{ searchdomain }}"
-=======
-  shell: "oc completion bash >/etc/bash_completion.d/oc_completion"
->>>>>>> b21534b789391b65eb879e9275accdd7ff3f4950
 
 - name: Copy Tower SSH Key pairs to Installer
   template:
@@ -139,12 +135,41 @@
     mode: 0644
   when: yumrepo_url is undefined
 
+- name: copy config file to referrence place-connected
+  template:
+    src: templates/install-config.connected.yaml.j2
+    dest: /var/tmp/install-config.yaml
+    mode: 0644
+  when: yumrepo_url is undefined
+
 - name: copy config file to correct place- disconnected
   template:
     src: templates/install-config.disconnected.yaml.j2
     dest: "{{ install_dir }}/install-config.yaml"
     mode: 0644
   when: yumrepo_url is defined
+
+- name: copy config file to correct place- disconnected
+  template:
+    src: templates/install-config.disconnected.yaml.j2
+    dest: /var/tmp/install-config.yaml
+    mode: 0644
+  when: yumrepo_url is defined
+
+- name: generate the Kubernetes manifests for the cluster
+  shell: "/usr/local/bin/openshift-install create manifests --dir={{ install_dir }}"
+
+- pause: seconds=30
+
+- name: prevent Pods from being scheduled on the control plane machines
+  replace:
+    path: "{{ install_dir }}/manifests/cluster-scheduler-02-config.yml"
+    before: 'policy'
+    regexp: 'true'
+    replace: 'false'
+    backup: yes
+
+- pause: seconds=30
 
 - name: create ignition configs
   shell: "/usr/local/bin/openshift-install create ignition-configs --dir={{ install_dir }}"
